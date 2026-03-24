@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>人生重大決策評估器 | Life Decision Scoring Tool</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;--bg2:#fcfdff;--card:#ffffff;--text:#142033;--muted:#6b7280;--line:#e6edf5;
+      --primary:#111827;--primary-2:#1f2937;--soft:#f8fafc;--soft2:#eef3f8;--shadow:0 18px 42px rgba(15,23,42,.07);
+      --radius:24px;--danger:#b91c1c;--success:#0f172a;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:linear-gradient(180deg,var(--bg2),var(--bg));color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    button,input,textarea{font:inherit}
+    .app{max-width:1060px;margin:0 auto;padding:28px 18px 54px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:22px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:42px;height:42px;border-radius:14px;border:1px solid var(--line);background:#fff;display:grid;place-items:center;font-size:22px;box-shadow:var(--shadow)}
+    h1{margin:0;font-size:clamp(26px,3vw,34px);line-height:1.08}
+    .subtitle{margin-top:6px;color:var(--muted);font-size:14px}
+    .top-actions{display:flex;gap:10px;align-items:center}
+    .btn,.icon-btn,.lang-btn,.danger-btn{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:14px;padding:10px 14px;cursor:pointer;transition:transform .2s ease,background .2s ease,border-color .2s ease,box-shadow .2s ease,opacity .2s ease}
+    .btn:hover,.icon-btn:hover,.lang-btn:hover,.danger-btn:hover{background:var(--soft);transform:translateY(-1px);box-shadow:0 10px 18px rgba(15,23,42,.05)}
+    .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+    .danger-btn{color:var(--danger)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .section{padding:24px}
+    .small{font-size:13px;line-height:1.6}.muted{color:var(--muted)}
+    .progress-wrap{display:grid;gap:12px;margin-bottom:18px}
+    .progress-row{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;overflow:auto;padding-bottom:2px}
+    .progress-step{display:flex;align-items:center;gap:10px;white-space:nowrap;transition:.28s ease}
+    .dot{width:14px;height:14px;border-radius:999px;background:#d5deea;transition:.28s ease;box-shadow:inset 0 0 0 1px rgba(15,23,42,.03)}
+    .progress-step.done .dot,.progress-step.active .dot{background:var(--primary);transform:scale(1.08)}
+    .progress-label{font-size:13px;color:#93a0b0;transition:.28s ease}
+    .progress-step.done .progress-label,.progress-step.active .progress-label{color:#38475a}
+    .progress-line{width:34px;height:1.5px;background:#dde5ef;border-radius:999px;flex:0 0 auto}
+    .panel-shell{position:relative;min-height:560px}
+    .view{animation:viewIn .48s cubic-bezier(.2,.7,.2,1)}
+    @keyframes viewIn{0%{opacity:0;transform:translateY(16px) scale(.992)}100%{opacity:1;transform:translateY(0) scale(1)}}
+    .step-title{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}.step-title h2{margin:0;font-size:24px}
+    .field{display:grid;gap:8px}.label{font-size:14px;font-weight:600}.hint{font-size:12px;color:var(--muted);line-height:1.55}
+    .input,.textarea{width:100%;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff;outline:none;transition:border-color .18s ease,box-shadow .18s ease}
+    .input:focus,.textarea:focus{border-color:#cfd8e3;box-shadow:0 0 0 4px rgba(148,163,184,.12)}
+    .textarea{min-height:96px;resize:vertical}
+    .grid{display:grid;gap:14px}.topics{grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .topic-card{padding:18px;border:1px solid var(--line);border-radius:20px;background:#fff;cursor:pointer;text-align:left;transition:transform .24s ease,border-color .24s ease,background .24s ease,color .24s ease,box-shadow .24s ease}
+    .topic-card:hover{transform:translateY(-3px);border-color:#d6dfeb;box-shadow:0 12px 24px rgba(15,23,42,.06)}
+    .topic-card.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .topic-card .desc{margin-top:8px;font-size:13px;line-height:1.55;opacity:.86}
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.space-between{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .item-list{display:grid;gap:12px}.item{border:1px solid var(--line);border-radius:18px;padding:14px;background:#fff;transition:.2s ease}.item:hover{border-color:#d8e0ea}
+    .item-grid{display:grid;gap:12px;grid-template-columns:1.55fr 130px auto}.factor-grid{display:grid;gap:12px;grid-template-columns:1.55fr 140px auto}.badge{display:inline-block;padding:6px 10px;border-radius:999px;background:var(--soft);color:var(--muted);font-size:12px}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:18px;background:#fff}
+    table{width:100%;min-width:920px;border-collapse:collapse}th,td{padding:14px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}tr:last-child td{border-bottom:none}th{background:#fbfcfe;font-size:14px;position:sticky;top:0}
+    .num-wrap{display:flex;align-items:center;gap:6px}.num-input{width:88px}.pct{font-size:12px;color:var(--muted)}
+    .actions{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:24px}.actions>div{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .summary-box{padding:15px;border-radius:18px;background:var(--soft);border:1px solid var(--line)}
+    .results{display:grid;gap:12px}.result-card{padding:16px;border:1px solid var(--line);border-radius:18px;background:#fff}.winner{background:var(--primary);color:#fff;border-color:var(--primary)}
+    .chart-card{padding:18px;border:1px solid var(--line);border-radius:20px;background:#fff}
+    .bars{display:grid;gap:12px;margin-top:10px}.bar-row{display:grid;grid-template-columns:minmax(110px,180px) 1fr 62px;gap:14px;align-items:center}.bar-track{height:14px;background:var(--soft2);border-radius:999px;overflow:hidden}.bar-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-2));border-radius:999px;transition:width .7s cubic-bezier(.2,.7,.2,1)}
+    .bar-label{font-size:14px;font-weight:600;line-height:1.4}.bar-value{font-size:14px;text-align:right;color:#334155}
+    .rank-table{display:grid;gap:10px;margin-top:14px}
+    .rank-item{display:grid;grid-template-columns:64px 1fr 80px;gap:14px;align-items:center;border:1px solid var(--line);border-radius:16px;padding:14px;background:#fff}
+    .rank-badge{font-size:12px;color:var(--muted);background:var(--soft);border-radius:999px;padding:6px 10px;display:inline-block;text-align:center}
+    .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.28);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px;z-index:60}
+    .modal-backdrop.open{display:flex;animation:fadeIn .22s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .modal{width:min(520px,100%);background:#fff;border:1px solid var(--line);border-radius:28px;box-shadow:0 30px 70px rgba(15,23,42,.18);overflow:hidden;animation:modalIn .28s cubic-bezier(.2,.7,.2,1)}
+    @keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}.modal-body{padding:20px;display:grid;gap:18px}
+    .history-actions{display:grid;gap:10px}
+    .hidden{display:none !important}
+    @media (max-width:760px){.app{padding:18px 14px 38px}.section{padding:18px}.item-grid,.factor-grid{grid-template-columns:1fr}.topbar{flex-direction:column;align-items:flex-start}.progress-line{width:16px}.progress-label{display:none}.panel-shell{min-height:auto}.bar-row{grid-template-columns:1fr}.rank-item{grid-template-columns:1fr}.modal{border-radius:22px}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo">🌟</div>
+        <div>
+          <h1 id="appTitle"></h1>
+          <div class="subtitle" id="appSubtitle"></div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="lang-btn" id="langBtn"></button>
+        <button class="icon-btn" id="historyToggleBtn"></button>
+      </div>
+    </div>
+
+    <main class="card section">
+      <div class="progress-wrap">
+        <div class="progress-row" id="fixedProgress"></div>
+      </div>
+      <div class="panel-shell">
+        <div id="mainPanel"></div>
+      </div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="historyModal">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="historyTitle">
+      <div class="modal-head">
+        <div>
+          <strong id="historyTitle"></strong>
+          <div class="hint" id="historySub"></div>
+        </div>
+        <button class="icon-btn" id="closeHistoryBtn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <div class="label" id="fileActionsTitle"></div>
+          <div class="history-actions" style="margin-top:10px">
+            <button class="btn" id="exportBtn"></button>
+            <button class="btn" id="importBtn"></button>
+            <input id="importFile" type="file" accept=".decision,application/json" class="hidden" />
+          </div>
+          <div class="hint" id="fileActionsHint" style="margin-top:8px"></div>
+        </div>
+        <div>
+          <div class="label" id="storageTitle"></div>
+          <div class="hint" id="storageHint" style="margin-top:8px"></div>
+        </div>
+        <div>
+          <button class="danger-btn" id="resetAllBtn"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+<script>
+const PRESETS={zh:[
+{id:'mba',title:'要不要出國念 MBA？',description:'適合比較不同學校、不同國家，或讀 / 不讀之間的取捨。',options:['去新加坡念 MBA','留在台灣再準備一年','先繼續工作不申請'],factors:[{id:'career',name:'職涯成長',weight:30},{id:'finance',name:'財務負擔',weight:25},{id:'timing',name:'時間成本',weight:15},{id:'relationship',name:'感情 / 家庭影響',weight:15},{id:'network',name:'人脈與國際視野',weight:15}]},
+{id:'job',title:'要不要換工作？',description:'適合比較轉職、內轉、留在原公司等選項。',options:['接受新工作','留在原公司','再觀望 6 個月'],factors:[{id:'salary',name:'薪資成長',weight:25},{id:'growth',name:'學習與發展空間',weight:25},{id:'stability',name:'穩定性',weight:20},{id:'culture',name:'主管 / 團隊文化',weight:15},{id:'balance',name:'生活平衡',weight:15}]},
+{id:'relationship',title:'要不要繼續一段關係？',description:'適合比較繼續投入、維持觀察，或理性抽離。',options:['繼續投入這段關係','維持觀察','理性抽離'],factors:[{id:'trust',name:'信任感',weight:25},{id:'future',name:'未來一致性',weight:25},{id:'emotion',name:'情緒安全感',weight:20},{id:'effort',name:'雙方投入程度',weight:15},{id:'practical',name:'現實條件',weight:15}]},
+{id:'move',title:'要不要搬家 / 出國？',description:'適合比較不同城市或國家的 relocation 決策。',options:['搬去新城市','出國','先留在原地'],factors:[{id:'cost',name:'生活成本',weight:25},{id:'opportunity',name:'機會與資源',weight:25},{id:'support',name:'支持系統',weight:20},{id:'adaptability',name:'適應難度',weight:15},{id:'quality',name:'生活品質',weight:15}]},
+{id:'marriage',title:'要不要結婚？',description:'適合比較現在結婚、再觀察一段時間，或先維持現狀。',options:['現在結婚','再觀察一段時間','先維持現狀'],factors:[{id:'emotion',name:'感情穩定度',weight:25},{id:'future',name:'未來共識',weight:25},{id:'family',name:'家庭與價值觀契合',weight:20},{id:'finance',name:'財務準備',weight:15},{id:'timing',name:'人生階段與時機',weight:15}]},
+{id:'child',title:'要不要生小孩？',description:'適合比較現在生、延後規劃，或維持不生的選擇。',options:['現在規劃生小孩','延後幾年再決定','目前不生'],factors:[{id:'desire',name:'內在意願',weight:25},{id:'partner',name:'伴侶共識',weight:25},{id:'finance',name:'經濟能力',weight:20},{id:'energy',name:'身心與照顧能量',weight:15},{id:'lifestyle',name:'生活型態影響',weight:15}]}
+],en:[
+{id:'mba',title:'Should I pursue an MBA abroad?',description:'Compare schools, countries, or the choice between going or not going.',options:['Pursue an MBA in Singapore','Stay in Taiwan and prepare one more year','Keep working for now'],factors:[{id:'career',name:'Career growth',weight:30},{id:'finance',name:'Financial burden',weight:25},{id:'timing',name:'Timing cost',weight:15},{id:'relationship',name:'Relationship / family impact',weight:15},{id:'network',name:'Network & global exposure',weight:15}]},
+{id:'job',title:'Should I change jobs?',description:'Compare switching jobs, internal transfer, or staying where you are.',options:['Accept the new job','Stay in current company','Wait another 6 months'],factors:[{id:'salary',name:'Salary growth',weight:25},{id:'growth',name:'Learning & growth',weight:25},{id:'stability',name:'Stability',weight:20},{id:'culture',name:'Manager / team culture',weight:15},{id:'balance',name:'Work-life balance',weight:15}]},
+{id:'relationship',title:'Should I continue this relationship?',description:'Compare committing more, observing longer, or stepping back.',options:['Keep investing in this relationship','Observe for now','Step back rationally'],factors:[{id:'trust',name:'Trust',weight:25},{id:'future',name:'Future alignment',weight:25},{id:'emotion',name:'Emotional safety',weight:20},{id:'effort',name:'Mutual effort',weight:15},{id:'practical',name:'Practical conditions',weight:15}]},
+{id:'move',title:'Should I move / relocate abroad?',description:'Compare cities or countries for relocation decisions.',options:['Move to a new city','Move abroad','Stay where I am'],factors:[{id:'cost',name:'Cost of living',weight:25},{id:'opportunity',name:'Opportunity & resources',weight:25},{id:'support',name:'Support system',weight:20},{id:'adaptability',name:'Difficulty of adaptation',weight:15},{id:'quality',name:'Quality of life',weight:15}]},
+{id:'marriage',title:'Should I get married?',description:'Compare getting married now, waiting, or staying as things are.',options:['Get married now','Wait and observe longer','Keep things as they are'],factors:[{id:'emotion',name:'Relationship stability',weight:25},{id:'future',name:'Shared future vision',weight:25},{id:'family',name:'Family & values fit',weight:20},{id:'finance',name:'Financial readiness',weight:15},{id:'timing',name:'Life stage & timing',weight:15}]},
+{id:'child',title:'Should I have a child?',description:'Compare trying now, delaying, or choosing not to.',options:['Plan for a child now','Delay and decide later','Do not plan for now'],factors:[{id:'desire',name:'Internal desire',weight:25},{id:'partner',name:'Partner alignment',weight:25},{id:'finance',name:'Financial capacity',weight:20},{id:'energy',name:'Energy & caregiving capacity',weight:15},{id:'lifestyle',name:'Lifestyle impact',weight:15}]}
+]};
+const T={
+zh:{appTitle:'人生重大決策評估器',appSubtitle:'用更有結構的方式，拆解你的重要選擇。',history:'歷史決策',historySub:'可匯出、載入，或清除目前保存在本機的決策。',progress:['主題','選項','因子與權重','打分與機率','結果'],chooseTopic:'選擇決策主題',chooseTopicSub:'先選一個最接近你目前情境的主題，再依需求調整內容。',topicName:'主題名稱',topicDesc:'主題說明',topicDescHint:'補充這次決策的背景，例如時間限制、預算或顧慮。',defineOptions:'定義選項',defineOptionsSub:'列出你真正想比較的選項，至少保留兩個。',option:'選項',addOption:'新增選項',defineFactors:'定義因子與權重',defineFactorsSub:'權重代表這個因子在你心中有多重要。',weight:'權重',weightHint:'權重：在你心目中對於這個因子在意的比例。',addFactor:'新增因子',totalWeight:'權重總和',scoring:'為每個選項打分',scoringSub:'每個因子都可填入分數與發生機率。',score:'分數',scoreHint:'分數：0 到 10 分，越高代表這個選項在此因子上的表現越符合你的期待。',probability:'機率',probabilityHint:'機率：這個因子發生的可能性。預設值 100% 代表必定發生，可以自行調整可能發生的百分比。',factor:'因子',back:'上一步',next:'下一步',finish:'查看結果',resultTitle:'評估結果',resultSub:'系統會依照 分數 × 權重 × 發生機率 計算各選項總分。',highest:'目前最高分選項',rank:'排名',why:'如何解讀這個結果',why1:'若第一名和第二名分數很接近，代表你可能還需要補充 1 到 2 個真正關鍵的因子。',why2:'若高分選項讓你心理上仍然抗拒，通常代表還有尚未量化的情緒因素。',why3:'建議把這個結果當作輔助判斷，而不是取代你的直覺。',restart:'重新開始',remove:'刪除',noLessThan2:'至少保留兩個項目。',exportDecision:'匯出決策',importDecision:'載入決策',fileActionsTitle:'決策檔案',fileActionsHint:'可把目前決策匯出成檔案，也可稍後再載入繼續編輯。',storageTitle:'本機儲存',storageHint:'系統會自動把目前進度保存在這台裝置的瀏覽器中。',resetAll:'清除本機資料並重設',importErr:'載入失敗，請確認檔案格式是否正確。',exportName:'decision',chartTitle:'視覺化比較',chartSub:'分數越高，代表整體加權後越符合你的需求。'},
+en:{appTitle:'Life Decision Scoring Tool',appSubtitle:'Structure your most important choices with clarity.',history:'Decision History',historySub:'Export, load, or clear the decision currently saved on this device.',progress:['Topic','Options','Factors','Scoring','Results'],chooseTopic:'Choose a decision topic',chooseTopicSub:'Start with the closest preset, then customize it for your situation.',topicName:'Topic name',topicDesc:'Topic description',topicDescHint:'Add context such as timing, budget, or your main concerns.',defineOptions:'Define options',defineOptionsSub:'List the options you truly want to compare. Keep at least two.',option:'Option',addOption:'Add option',defineFactors:'Define factors and weights',defineFactorsSub:'Weight reflects how much this factor matters to you.',weight:'Weight',weightHint:'Weight: how much you care about this factor in your overall decision.',addFactor:'Add factor',totalWeight:'Total weight',scoring:'Score each option',scoringSub:'For each factor, enter both score and likelihood.',score:'Score',scoreHint:'Score: from 0 to 10. Higher means this option performs better on this factor.',probability:'Likelihood',probabilityHint:'Likelihood: how likely this factor is to happen. 100% means it will definitely happen.',factor:'Factor',back:'Back',next:'Next',finish:'See results',resultTitle:'Results',resultSub:'Scores are calculated using Score × Weight × Likelihood.',highest:'Top option right now',rank:'Rank',why:'How to read this result',why1:'If the top two options are very close, you may still need one or two critical factors.',why2:'If the high-scoring option still feels wrong emotionally, there is probably an unmeasured factor.',why3:'Use this result to support your judgment, not replace it.',restart:'Start over',remove:'Remove',noLessThan2:'Please keep at least two items.',exportDecision:'Export decision',importDecision:'Load decision',fileActionsTitle:'Decision files',fileActionsHint:'Save your current decision as a file, or load one later to keep editing.',storageTitle:'Local saving',storageHint:'Your current progress is automatically saved in this browser on this device.',resetAll:'Clear local data and reset',importErr:'Unable to load this file. Please check the format.',exportName:'decision',chartTitle:'Visual comparison',chartSub:'A higher score means the overall weighted result fits you better.'}
+};
+const STORAGE_KEY='life-decision-v3';
+let lang='zh',currentStep=1,selectedPresetId='mba',scenario=null,historyOpen=false;
+function uid(){return Math.random().toString(36).slice(2,9)}
+function deepClone(v){return JSON.parse(JSON.stringify(v))}
+function presetById(id,l=lang){return PRESETS[l].find(p=>p.id===id)||PRESETS[l][0]}
+function buildScenarioFromPreset(id,l=lang){const p=deepClone(presetById(id,l));const optionScores={},optionProbabilities={};p.options.forEach(o=>{optionScores[o]={};optionProbabilities[o]={};p.factors.forEach(f=>{optionScores[o][f.id]=5;optionProbabilities[o][f.id]=1})});return{topicTitle:p.title,topicDescription:p.description,options:p.options,factors:p.factors,optionScores,optionProbabilities}}
+function normalizeFactors(){const total=scenario.factors.reduce((s,f)=>s+Number(f.weight||0),0)||1;return scenario.factors.map(f=>({...f,normalized:Number(f.weight||0)/total}))}
+function results(){const nf=normalizeFactors();return scenario.options.map(opt=>{const total=nf.reduce((sum,f)=>{const score=Number((scenario.optionScores[opt]||{})[f.id]??0);const prob=Number((scenario.optionProbabilities[opt]||{})[f.id]??1);return sum+(score*f.normalized*prob)},0);return{option:opt,total:Number(total.toFixed(2))}}).sort((a,b)=>b.total-a.total)}
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify({lang,currentStep,selectedPresetId,scenario}))}
+function loadState(){const raw=localStorage.getItem(STORAGE_KEY);if(!raw){scenario=buildScenarioFromPreset(selectedPresetId,lang);return}try{const data=JSON.parse(raw);lang=data.lang||lang;currentStep=data.currentStep||1;selectedPresetId=data.selectedPresetId||selectedPresetId;scenario=data.scenario||buildScenarioFromPreset(selectedPresetId,lang)}catch(e){scenario=buildScenarioFromPreset(selectedPresetId,lang)}}
+function escapeHtml(str=''){return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
+function escapeJs(str=''){return String(str).replaceAll('\\','\\\\').replaceAll("'","\\'")}
+function renderProgress(){const t=T[lang];const el=document.getElementById('fixedProgress');let html='';t.progress.forEach((label,idx)=>{const step=idx+1;const cls=currentStep===step?'active':currentStep>step?'done':'';html+=`<div class="progress-step ${cls}"><div class="dot"></div><div class="progress-label">${label}</div></div>`;if(step<5)html+='<div class="progress-line"></div>'});el.innerHTML=html}
+function renderChrome(){const t=T[lang];document.getElementById('appTitle').textContent=t.appTitle;document.getElementById('appSubtitle').textContent=t.appSubtitle;document.getElementById('langBtn').textContent=lang==='zh'?'EN':'中';document.getElementById('historyToggleBtn').textContent=t.history;document.getElementById('historyTitle').textContent=t.history;document.getElementById('historySub').textContent=t.historySub;document.getElementById('fileActionsTitle').textContent=t.fileActionsTitle;document.getElementById('fileActionsHint').textContent=t.fileActionsHint;document.getElementById('storageTitle').textContent=t.storageTitle;document.getElementById('storageHint').textContent=t.storageHint;document.getElementById('exportBtn').textContent=t.exportDecision;document.getElementById('importBtn').textContent=t.importDecision;document.getElementById('resetAllBtn').textContent=t.resetAll;document.getElementById('historyModal').classList.toggle('open',historyOpen);renderProgress()}
+function renderMain(){const t=T[lang];const main=document.getElementById('mainPanel');let html='<div class="view">';
+if(currentStep===1){html+=`<div class="step-title"><div><h2>${t.chooseTopic}</h2><div class="muted small">${t.chooseTopicSub}</div></div></div><div class="grid topics">`;PRESETS[lang].forEach(p=>{html+=`<button class="topic-card ${selectedPresetId===p.id?'active':''}" onclick="selectPreset('${p.id}')"><div style="font-weight:700">${p.title}</div><div class="desc">${p.description}</div></button>`});html+=`</div><div class="grid" style="margin-top:18px"><div class="field"><div class="label">${t.topicName}</div><input class="input" value="${escapeHtml(scenario.topicTitle)}" oninput="updateScenario('topicTitle', this.value)"></div><div class="field"><div class="label">${t.topicDesc}</div><textarea class="textarea" oninput="updateScenario('topicDescription', this.value)">${escapeHtml(scenario.topicDescription||'')}</textarea><div class="hint">${t.topicDescHint}</div></div></div><div class="actions"><div></div><div><button class="btn primary" onclick="goNext()">${t.next}</button></div></div>`}
+if(currentStep===2){html+=`<div class="step-title"><div><h2>${t.defineOptions}</h2><div class="muted small">${t.defineOptionsSub}</div></div><button class="btn" onclick="addOption()">${t.addOption}</button></div><div class="item-list">`;scenario.options.forEach((opt,idx)=>{html+=`<div class="item"><div class="item-grid"><input class="input" value="${escapeHtml(opt)}" oninput="renameOption(${idx}, this.value)"><div class="badge">${t.option} ${idx+1}</div><button class="danger-btn" onclick="removeOption('${escapeJs(opt)}')">${t.remove}</button></div></div>`});html+=`</div><div class="actions"><div><button class="btn" onclick="goBack()">${t.back}</button></div><div><button class="btn primary" onclick="goNext()">${t.next}</button></div></div>`}
+if(currentStep===3){const totalWeight=scenario.factors.reduce((s,f)=>s+Number(f.weight||0),0);html+=`<div class="step-title"><div><h2>${t.defineFactors}</h2><div class="muted small">${t.defineFactorsSub}</div></div><button class="btn" onclick="addFactor()">${t.addFactor}</button></div><div class="summary-box small"><strong>${t.weight}</strong><br>${t.weightHint}</div><div class="item-list" style="margin-top:14px">`;scenario.factors.forEach(f=>{html+=`<div class="item"><div class="factor-grid"><input class="input" value="${escapeHtml(f.name)}" oninput="updateFactor('${f.id}','name',this.value)"><input class="input" type="number" min="0" step="1" value="${Number(f.weight||0)}" oninput="updateFactor('${f.id}','weight',this.value)"><button class="danger-btn" onclick="removeFactor('${f.id}')">${t.remove}</button></div></div>`});html+=`</div><div class="hint" style="margin-top:10px">${t.totalWeight}: ${totalWeight}</div><div class="actions"><div><button class="btn" onclick="goBack()">${t.back}</button></div><div><button class="btn primary" onclick="goNext()">${t.next}</button></div></div>`}
+if(currentStep===4){html+=`<div class="step-title"><div><h2>${t.scoring}</h2><div class="muted small">${t.scoringSub}</div></div></div><div class="summary-box small"><strong>${t.score}</strong><br>${t.scoreHint}<br><br><strong>${t.probability}</strong><br>${t.probabilityHint}</div><div class="table-wrap" style="margin-top:14px"><table><thead><tr><th>${t.factor}</th>`;scenario.options.forEach(opt=>html+=`<th>${escapeHtml(opt)}</th>`);html+='</tr></thead><tbody>';scenario.factors.forEach(f=>{html+=`<tr><td><div style="font-weight:600">${escapeHtml(f.name)}</div><div class="hint">${t.weight}: ${Number(f.weight||0)}</div></td>`;scenario.options.forEach(opt=>{const score=Number((scenario.optionScores[opt]||{})[f.id]??5);const probPercent=Math.round(Number((scenario.optionProbabilities[opt]||{})[f.id]??1)*100);html+=`<td><div class="row"><div><div class="hint">${t.score}</div><input class="input num-input" type="number" min="0" max="10" step="1" value="${score}" oninput="updateCell('${escapeJs(opt)}','${f.id}','score',this.value)"></div><div><div class="hint">${t.probability}</div><div class="num-wrap"><input class="input num-input" type="number" min="0" max="100" step="1" value="${probPercent}" oninput="updateCell('${escapeJs(opt)}','${f.id}','prob',this.value)"><span class="pct">%</span></div></div></div></td>`});html+='</tr>'});html+=`</tbody></table></div><div class="actions"><div><button class="btn" onclick="goBack()">${t.back}</button></div><div><button class="btn primary" onclick="goNext()">${t.finish}</button></div></div>`}
+if(currentStep===5){const r=results();const top=r[0];const max=Math.max(...r.map(x=>x.total),1);html+=`<div class="step-title"><div><h2>${t.resultTitle}</h2><div class="muted small">${t.resultSub}</div></div></div>`;if(top){html+=`<div class="result-card winner"><div class="small" style="opacity:.85">${t.highest}</div><div style="font-size:28px;font-weight:700;margin-top:6px">${escapeHtml(top.option)}</div><div class="small" style="opacity:.85;margin-top:8px">${top.total} / 10</div></div>`}html+=`<div class="chart-card" style="margin-top:16px"><div style="font-size:18px;font-weight:700">${t.chartTitle}</div><div class="muted small" style="margin-top:4px">${t.chartSub}</div><div class="bars">`;r.forEach(item=>{const width=Math.max(8,(item.total/max)*100);html+=`<div class="bar-row"><div class="bar-label">${escapeHtml(item.option)}</div><div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div><div class="bar-value">${item.total}</div></div>`});html+=`</div></div><div class="rank-table">`;r.forEach((item,idx)=>{html+=`<div class="rank-item"><div class="rank-badge">${t.rank} #${idx+1}</div><div style="font-weight:700">${escapeHtml(item.option)}</div><div style="font-size:24px;font-weight:700;text-align:right">${item.total}</div></div>`});html+=`</div><div class="summary-box small" style="margin-top:16px"><strong>${t.why}</strong><br>${t.why1}<br>${t.why2}<br>${t.why3}</div><div class="actions"><div><button class="btn" onclick="goBack()">${t.back}</button></div><div><button class="btn" onclick="restartFlow()">${t.restart}</button></div></div>`}
+html+='</div>';main.innerHTML=html}
+function render(){renderChrome();renderMain();saveState()}
+function selectPreset(id){selectedPresetId=id;scenario=buildScenarioFromPreset(id,lang);render()}
+function updateScenario(field,value){scenario[field]=value;saveState()}
+function goNext(){if(currentStep<5){currentStep+=1;render()}}
+function goBack(){if(currentStep>1){currentStep-=1;render()}}
+function restartFlow(){currentStep=1;render()}
+function addOption(){const name=(lang==='zh'?'新選項 ':'New Option ')+(scenario.options.length+1);scenario.options.push(name);scenario.optionScores[name]={};scenario.optionProbabilities[name]={};scenario.factors.forEach(f=>{scenario.optionScores[name][f.id]=5;scenario.optionProbabilities[name][f.id]=1});render()}
+function renameOption(index,value){const old=scenario.options[index];scenario.options[index]=value;scenario.optionScores[value]=scenario.optionScores[old]||{};scenario.optionProbabilities[value]=scenario.optionProbabilities[old]||{};if(old!==value){delete scenario.optionScores[old];delete scenario.optionProbabilities[old]}saveState()}
+function removeOption(name){if(scenario.options.length<=2){alert(T[lang].noLessThan2);return}scenario.options=scenario.options.filter(o=>o!==name);delete scenario.optionScores[name];delete scenario.optionProbabilities[name];render()}
+function addFactor(){const factor={id:uid(),name:(lang==='zh'?'新因子 ':'New Factor ')+(scenario.factors.length+1),weight:10};scenario.factors.push(factor);scenario.options.forEach(opt=>{scenario.optionScores[opt][factor.id]=5;scenario.optionProbabilities[opt][factor.id]=1});render()}
+function updateFactor(id,field,value){scenario.factors=scenario.factors.map(f=>f.id===id?{...f,[field]:field==='weight'?Number(value):value}:f);saveState();renderMain()}
+function removeFactor(id){if(scenario.factors.length<=2){alert(T[lang].noLessThan2);return}scenario.factors=scenario.factors.filter(f=>f.id!==id);scenario.options.forEach(opt=>{delete scenario.optionScores[opt][id];delete scenario.optionProbabilities[opt][id]});render()}
+function updateCell(option,factorId,kind,value){if(kind==='score')scenario.optionScores[option][factorId]=Math.max(0,Math.min(10,Number(value)||0));if(kind==='prob')scenario.optionProbabilities[option][factorId]=Math.max(0,Math.min(100,Number(value)||0))/100;saveState()}
+function exportDecision(){const blob=new Blob([JSON.stringify({lang,currentStep,selectedPresetId,scenario},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${T[lang].exportName}.decision`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}
+function importDecision(file){const reader=new FileReader();reader.onload=e=>{try{const data=JSON.parse(e.target.result);if(data.lang)lang=data.lang;if(data.selectedPresetId)selectedPresetId=data.selectedPresetId;if(data.currentStep)currentStep=data.currentStep;if(data.scenario)scenario=data.scenario;historyOpen=false;render()}catch(err){alert(T[lang].importErr)}};reader.readAsText(file)}
+function resetAll(){selectedPresetId=PRESETS[lang][0].id;scenario=buildScenarioFromPreset(selectedPresetId,lang);currentStep=1;localStorage.removeItem(STORAGE_KEY);historyOpen=false;render()}
+function switchLang(){lang=lang==='zh'?'en':'zh';if(!(PRESETS[lang]||[]).some(p=>p.id===selectedPresetId))selectedPresetId=PRESETS[lang][0].id;scenario=buildScenarioFromPreset(selectedPresetId,lang);render()}
+const modal=document.getElementById('historyModal');
+document.getElementById('langBtn').addEventListener('click',switchLang);
+document.getElementById('historyToggleBtn').addEventListener('click',()=>{historyOpen=true;renderChrome()});
+document.getElementById('closeHistoryBtn').addEventListener('click',()=>{historyOpen=false;renderChrome()});
+modal.addEventListener('click',e=>{if(e.target===modal){historyOpen=false;renderChrome()}});
+document.getElementById('exportBtn').addEventListener('click',exportDecision);
+document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change',e=>{if(e.target.files[0])importDecision(e.target.files[0]);e.target.value=''});
+document.getElementById('resetAllBtn').addEventListener('click',resetAll);
+loadState();render();
+</script>
+</body>
+</html>
